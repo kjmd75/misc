@@ -190,4 +190,43 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 * Running repair if a node is down for more than 3 hours is required.
 * If a node is down for a very long time, it is probably better to rebuild the node than repair it (too much data to sync).
 
+### Dividing SSTables with sstablesplit
+
+* If you did a nodetool compact and you have a really large SSTable, you can use sstablesplit to split large SSTable files into multiple smaller files.
+* You **MUST** shut down Cassandra (the whole cluster) before running this.
+
+### Creating Snapshots
+
+* Snapshots will backup the data in case you have a castrophic failure or a user messed up the data and you need to recover.
+* Creates a hard link of SSTables
+  * Stored in a "snapshots" directory under each table directory.
+* Incremental backups are disabled by default and can be turned on by setting incremental_backups to true in cassandra.yaml
+  * An existing snapshot is needed before taking incremental backups
+  * Incremental backups are stored in a "backups" directory under the keyspace data directory.
+* Snapshots and incremental backups are stored locally.  Good for simple restores.  Bad for node/hardware failure.
+* It's good practice to move these backups to an off-node location regularlly.  
+  * Can use tablesnap to backup these files to S3
+  * Can use cron with bash or rsync, etc to backup to other machines 
+* Auto snapshot is on by default (shouldn't be disabled)
+  * Will automatically snapshot before a table is truncated or tables/keyspaces are dropped.
+* nodetool snapshot (needs to run on each node around the same time)
+* nodetool clearsnapshot - will delete all snapshots
+* Restore method:
+  * Standard Method
+    * Delete teh current data files and copy the snapshot and incremental files to the appropriate data directories
+    * If using incremental backups, copy the contents of the backups directory to each table directory
+    * Table schema must already be present in order to use this method
+    * Restart and repair the node after the file copying is done
+  * sstableloader Method
+    * If you are loading into a different size cluster (backups from 10 nodes, loading into 6 nodes)
+    * Must be careful, as it can add significant load to the cluster while loading
+* Cluster wide backups
+  * OpsCenter
+  * Node backups synced on all nodes via SSH script
+  
+### Implementing Multiple Data Centers
+
+
+  
+
 
