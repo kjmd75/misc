@@ -226,7 +226,104 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
   
 ### Implementing Multiple Data Centers
 
+* **Node** - virtual or physical host of single Cassandra instance
+* **Rack** - logical grouping of physically related nodes
+* **Data Center** - a logical or physical grouping of a set of racks
+* Enables geographically aware read/write request routing
+* Each node belongs to one rack in one data center
+* The node's rack/data center is identified in conf/cassandra-rackdc.properties
 
+* Why have multiple data centers?
+  * Continuous availability of the data/app
+  * Live backup
+  * Improved performance (reduces latency for users)
+  * Analytics
+  
+* What if one data center goes down?
+  * Failure of a data center will likely go unnoticed by end users
+  * If node/nodes fail, they will stop communicating via gossip
+  * Recovery can be accomplished with a rolling repair to all nodes in failed data center
+
+* How to implement multi-data center cluster
+  * Use the NetworkTopologyStrategy rather than SimpleStrategy
+  * Use LOCAL consistency level for read/write operations to limit latency
+  * If possible, define one rack for entire cluster
+  * Specify the snitch
+
+### Best Practices for Cluster Sizing
+
+* Estimating the volume of data
+  * Data per node (avg amount of data per row) x (number of rows) / (number of nodes)
+* Velocity of data
+  * How many writes per second?
+  * How many reads per second?
+  * Volume of data per operation?
+* Factor in replication
+  * Multiply per node volume by Replication Factor (RF=3 means three copies of the data)
+* Testing limits
+  * Use cassandra-stress to simulate workload
+  * Test production level servers
+  * Monitor to fin dlimits
+    * Disk limits
+    * CPU limits
+* Example
+  * Assuming:
+    * 100 GB of data per day
+    * Writes - 150k per second
+    * Reads - 100k per second
+    * Replication Factor = 3
+    * 2 data centers
+    * 25ms read latency 95th percentile
+  * Testing summary
+    * Node capability to maintain < 25ms reads
+      * At maximum packet size, 50k writes/sec
+      * At maximum packet size, 40k reads/sec
+      * 4 TB per node to allow for compaction overhead
+    * Sizing for Volume
+      * (100 GB per day) x (30 days) x (6 months retention) = 18 TB data
+      * (18 TB data) x (RF 3) = 54 TB total cluster load
+      * (54 TB total data) / (4 TB max per node) = 14 nodes
+      * (14 nodes) x (2 data centers) = 28 total nodes
+    * Sizing for Velocity
+      * (150k writes/sec load) / (50k writes/sec per node requirement) = 3 nodes
+      * Since 3 nodes is less than 14 nodes, our volume capacity outranks the velocity capacity.  So 14 nodes per data center.
+    * Future Capacity
+      * Validate assumptions often
+      * Monitor for changes over time
+      * Plan for increasing cluster size before you need it
+      * Be ready to reduce cluster size if needed (you over-estimated)
+      
+### Using the cassandra-stress Tool
+
+* Java based stress testing utility for Cassandra
+* Uses a YAML profile to define a specific schema with compaction strategy
+  * DDL - defining your schema
+  * Column Distribution - for defining shape and size of each column globally and within each partition
+  * Insert Distributions - for defining how the data is written during the stress test
+  * DML - for defining how the data is queried during the stress test
+  
+### Using CQL Copy command
+
+* Import/Export delimited data to/from Cassandra
+* Some rules:
+  * Every row in the delimited input file contains the same number of columns in the table.
+  * Empty data for a column is assumed by default as a NULL value
+  * COPY FROM is intended for importing small datasets (a few million rows or less).  It isn't meant as a backup strategy.
+  * For importing larger datasets, use Cassandra bulk loader.
+* COPY FROM Example:
+  * COPY killrvideo.users FROM 'users.txt' WITH DELIMITER='|' AND HEADER=TRUE
+* Options:
+  * DELIMITER - set the character (single character) that the data is delimited with (default is comma)
+  * HEADER - set true to inidcate the first row in the file is the header (default is false)
+  * CHUNKSIZE - set the size of chunks passed to worker processes (default is 1000)
+  * SKIPROWS - the number of rows to skip (default is 0)
+* COPY TO Example:
+  * COPY users (firstname, lastname, created_date, email) TO 'users.csv'
+* You may also use STDIN or STDOUT keywords to import from standard input or export to standard output.  
+
+### Stream Data with sstableloader
+
+      
   
 
 
