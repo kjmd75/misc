@@ -82,7 +82,7 @@ Virtual nodes.  Allows for the partition keys to be virtually split up which all
 
 Cluster metadata (status of nodes - up/down or under stress) is shared between nodes asynchronously.  
 
-* Application state is schared:
+* Application state is shared:
   * status (normal/joining/leaving)
   * data center location
   * rack location
