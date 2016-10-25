@@ -323,7 +323,65 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 
 ### Stream Data with sstableloader
 
-      
+* Provides ability to bulk load external data into Cassandra
+* You can also use it to load pre-existing SSTables into an existing or new cluster
+* Streams table data back into the cluster
+* Example:
+  * sstableloader -d 110.82.155.1 /var/lib/cassandra/data/killrvideo/users/
+
+### Explore your SSTables with sstabledump
+
+* Allows you to see the raw data of a SSTable in a text format (dumps to JSON format)
+  * You can see things like timestamps and tombstones as well
+
+### Import data with Spark
+
+* Provides convienient functionality for loading large external data sets into Cassandra
+* Ingests files in CSV, TSV, JSON, XML, and other formats
+* Can do some validation and transformations on the data before loading into Cassandra
+
+### Configuring the cassandra.yaml file
+
+* This is the main configuration file for Cassandra
+  * Default location is /etc/cassandra
+* Minimum properties
+  * cluster_name - must be the same name as each of the other nodes in the cluster (default: Test Cluster)
+  * listen_address - network ip address on the node (default: localhost)
+  * listen_interface - network port (default: eth0)
+  * listen_interface_prefer_ipv6 - IP v6 flag (default: false)
+* Storage options
+  * hinted_handoff_enabled - hinted handoff is performed when set to true
+  * max_hint_window_in_ms - this defines the maximum amount of time a dead host will have hints generated
+  * data_file_directories - the location of data files
+  * commitlog_directory - the location of the commit log directory
+  * row_cache_size_in_mb - maximum size of the row cache in memory
+* Communications
+  * partitioner - responsible for distributing groups of rows (by partition key) across nodes in the cluster
+  * storage_port - TCP port for commands and data
+  * broadcast_address - address to broadcast to other Cassandra nodes
+* Internal node configuration
+  * concurrent_reads/concurrent_writes - number of reads/writes permittedto occur concurrently
+  * file_cache_size_in_mb - maximum memory to use for pooling sstable buffers
+  * memtable_heap_space_in_mb/memtable_offheap_space_in_mb - total on heap and off allowance for membtables
+* Security
+  * authorizer - the authentication backend.  It implements IAuthenticator for identifying users
+  * internode_authenticator - used to allow/disallow connections from peer nodes
   
+### System & Output logs
+
+* Simple Logging Facade for Java
+* A logback backend
+* Logs written to system.log and debug.login (in logs directory)
+* Configure logging programmatically or manually
+  * manually
+    * Run nodetool setlogginglevel command
+    * Configure the logback-test.xml or logback.xml file installed with Cassandra
+    * Use the JConsole tool to configure logging through JMX
+ 
+### Using the nodetool utility
+
+
+  
+
 
 
