@@ -494,3 +494,89 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 * expired_sstable_check_frequency_seconds - determines how often to check for fully expired (tombstoned) SSTables
 
 ### Configuring JVM Settings
+
+* JVM is the Java Virtual Machine that Cassandra runs within.  Each JVM has CPU and Memory/Heap resources
+* cassandra-env.sh - controls environment settings, such as JVM configuration settings for Cassandra as well as JMX options
+  * MAX_HEAP_SIZE - If less tan 2GB of system memory, it uses 1/2.  If 2-4GB of system memory, it will use 1GB.  If more than 4GB of system memory, it will use 1/4, but won't exceed 8GB.  Large heaps can introduce Garbage Collection pauses that lead to latency
+  * HEAP_NEWSIZE - 100MB per core.  The larger this is, the longer Garbage Collection (GC) pause times will be.  The shorter it is, the more expensive GC will be
+* jvm.options - garbage collection settings **Don't change unless you know what you're doing**
+* Tuning Java Garbage Collection
+  * Default is Concurrent-Mark-Sweep (CMS) garbage collector
+  * G1 garbage collector is better than CMS for large heaps
+    * Goes for regions of heap with most garbage first
+    * Compacts the heap on-the-go
+  * Garbage collection is configured in conf/jvm.options
+    * Comment out CMS configuration lines and Uncomment the G1 settings, and restart process
+* You can also view JVM settings through JMX on port 7199
+
+### Understanding Garbage Collection
+
+* It cleans up unused memory to free memory
+* Minimize the length of pauses and increase throughput on the amount of memory it can clean up per cycle
+* A full garbage collection (full GC) is bad because it pauses the application while it cleans up memory.  If garbage collection can't clean out memory fast enough, it will trigger a full GC
+
+### Generating Heap Dumps for Troubleshooting
+
+* Useful when troubleshooting high memory utilization or OutOfMemoryErrors
+* Shows exactly which objects are consuming most of the heap
+* Out of Memory errors are automatically dumped
+* By default, Cassandra puts the dump file in a subdirectory of the working, root directory when running as a service
+* You can set a new dump path by changing cassandra-env.sh and setting CASSANDRA_HEAPDUMP_DIR to the new path
+* Can manually trigger a heap dump using "sudo -u user jmap -dump:file=filename,format=b pid"
+* Eclipse Memory Analyzer Tool (MAT) is a tool that can be used to analyze a heap dump
+
+### JVM Profiling
+
+* How to discover issues with the JVM
+  * nodetool tpstats
+    * Can see Active, Pending, Blocked, All time blocked threads
+    * Blocked threads are problematic
+    * Mutations that are dropped are also bad
+  * OpsCenter
+    * Graphing JVM stats
+  * JMX Clients
+    * jconsole
+    * visualvm
+
+### Importance of Time Sync
+
+* Time Stamp Counter (TSC) is the most common clock source. 
+* The clocks on all nodes should be synchronized.  If they are out of sync, it can lead to unstableness
+* You can use NTP (Network Time Protocol) or other methods
+
+### Configuring the Kernel
+
+* limits.conf
+``` text
+  * - nofile      1048576
+  * - memlock     unlimited
+  * - fsize       unlimited
+  * - data        unlimited
+  * - rss         unlimited
+  * - stack       unlimited
+  * - cpu         unlimited
+  * - nproc       unlimited
+  * - as          unlimited
+  * - locks       unlimited
+  * - sigpending  unlimited
+  * - msgqueue    unlimited
+```
+* Turn off swap
+  * swapoff -a
+  * remove all swap files from /etc/fstab
+``` text 
+    sed -i 's/^\(.*swap\)/#\1/' /etc/fstab
+```
+* sysctl.conf
+``` text
+   net.ipv4.ip_local_port_range = 10000 65535
+   net.ipv4.tcp_window_scaling = 1
+   net.ipv4.tcp_rmem = 4096 87380 16777216
+   net.ipv4.tcp_wmem = 4096 65536 16777216
+   net.core.rmem_max = 16777216
+   net.core.wmem_max = 16777216
+   net.core.netdev_max_backlog = 2500
+   net.core.somaxconn = 65000
+```
+
+### Useful Linux Observation Tools
