@@ -403,5 +403,94 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
     * nodetool proxyhistograms - provides a histogram of network stats.  Includes percentile rank of read/write latency values
     * nodetool netstats - provides network information about a host
   
+### Monitoring Your Cluster with OpsCenter
 
+* OpsCenter is built by DataStax.  Performance, Backup/Restore, Repair, and Best Practices services
+* Visual Monitoring and Management
+  * Control automatic management services including transparent repair
+  * Managed and schedule backup and restore operations
+  * Perform capacity planning with historical trend analysis and foecasting capabilities
+  * Proactively manage all clusters with threshold and timing-based alerts
+  * Visually create new clusters with a few mouse clicks
+  * Built-in Automatic Failover
+* Performance Service
+  * Collects key performance metrics to quickly troubleshoot cluster performance
+  * Analyzes Query, Table, and Cluster specific metrics
+  * Correlates diferent metrics and provides custom recommendations
+  * Eliminates the need for custom scripting and scheduling to detect problem nodes
+* Backup/Restore Service
+  * User-configuarable
+  * Optimized storage
+  * Automatic Cleanup
+  * Store backups in AWS S3 (offsite)
+  * Coordinated Restore
+  * Supports different Topology
+  * Cloning
+  * Point In Time Restore
+* Visual Repair Service
+  * Automatically maintains data consistency across a cluster without impacting performance
+  * Ensures that your cluster operates efficiently by optimally running repairs
+* Best Practice Service
+  * Periodically scans database clusters and automatically detects issues that threaten a cluster's security, availability, and performance
+  * Utilizes a set of expert rules that span a variety of different categories and summarizes the results
+  
+### Intro to JMX
 
+* Java Management Extensions
+* Gathering metrics from Cassandra is done through JMX
+* JMX has MBeans (Management Beans).  Each metric is a MBean.  Found under org.apache.cassandra.metrics
+  * domain:key=value,key2=value2
+
+### Leveled Compaction
+
+* A process to create multiple levels of SSTables through compaction
+* Leveled compaction is good for high read and low write systems due to the overhead on IO for the frequent compaction
+* Leveled compaction uses a multiplier of 10 per level.  So the default SSTable max size of 160MB would cause Level 1 limit to be 1600MB.  Level 2 limit would be 16,000MB, and so on
+* Each partition only resides in one SSTable per level max
+* Reads handled by only a few SSTables, which makes it faster
+* 90% of the data resides in the lowest level (due to the 10x rule), unless the lowest level isn't full
+* Pros:
+  * Great for high read and lower write environments
+  * Wastes less disk space
+  * Grouping makes updated records merge more frequently with older records
+* Cons: 
+  * Frequent compactions causes higher IO
+  * Compacts more SSTables at once over size tiered compaction
+  * Can't injest data at high insert speeds
+
+### Size Tiered Compaction
+
+* A compaction process to group similiarly sized SSTables together
+* Tiers with less than min_threshold (four) SSTables are not considered for compaction
+* The smaller the SSTables, the "thinner" the distance between min_threshold and max_threshold
+* SSTables qualifying for more than one tier are distributed randomly amongst buckets
+* Buckets with more than max_threshold SSTables are trimmed to just that many SSTables (32 by default.  SSTables least hit will be dropped into new bucket)
+* The tier that is accessed the most (the hottest) is chosen for compaction first
+* Similar sized SSTables compact together better
+* SSTables of similar size will have a fair amount of overlap
+* concurrent_compactors - allows you to set parallel compactors
+* When does Compaction run?
+  * When MemTable flushes to SSTable
+    * MemTable too large
+    * Commit Log too large
+    * Manual flush
+  * Cluster streams SSTable segments to new node
+    * Bootstrap
+    * Rebuild
+    * Repair
+* Compaction continues until there are no more tiers/buckets with at least min_threshold tables in it
+* Size Tiered Compaction is the default compaction for tables
+* Pros:
+  * Great for high write by procrastinating compaction as long as possible
+  * compaction_throughput_mb_per_sec - controls the compaction IO load on a node
+* Major compaction will compact all SSTables into one SSTable **Don't do this**  
+
+### Time Windowed Compaction
+
+* Built for Time Series Data
+* Each time window is compacted into a single SSTable
+* compaction_window_unit - minutes, hours, days
+* compaction_window_size - Number of units in each window
+* expired_sstable_check_frequency_seconds - determines how often to check for fully expired (tombstoned) SSTables
+
+### Configuring JVM Settings
