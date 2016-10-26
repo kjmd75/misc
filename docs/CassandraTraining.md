@@ -381,8 +381,27 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 ### Using the nodetool utility
 
 * Command line interface for interacting with your Cassandra node
-* 
+* It's a command wrapper for JMX interactions
+* Groups of commands:
+  * Cluster
+    * nodetool status - provides information about the cluster, such as state, load, and IDs
+  * Server
+    * nodetool repair - starts a repair process from the point of view of that node. repairs one or more tables
+    * nodetool info - specific information about the node you are on. Load, uptime, status of JVM
+    * nodetool tpstats - provides usage stats on thread pools.  How many completed, pending, blocked?  A high number of pending tasks can indicate performance problems.  Shows mutation drops (critical for troubleshooting a node)
+    * nodetool tablehistograms - provides statistics on a table.  Includes read/write latency, partition size, column count, and number of SSTables.  The report is incremental, not cumulative.  It covers all operations since the last time nodetool tablehistograms was run in the current session
+  * Backup
+    * nodetool snapshot - takes a snapshot of one or more keyspaces, or a table, to backup data.  To backup an entire cluster, you would need to take a snapshot on all nodes around the same time
+    * nodetool clearsnapshot - removes one or more snapshots
+  * Storage
+    * nodetool cleanup - used to get rid of old data on nodes after bootstrap operations.  Deletes snapshots in one or more keyspaces.  Not specifying a snapshot name removes all snapshots
+    * nodetool flush - flushes everything in memtables out to SSTables and deletes all commit log segments.  Can use before shutting down a node to write all data to SSTables.  This can speed up restart of the app
+  * Compaction
+    * nodetool compact - forces a major compaction on one or more tables.  **Don't do this unless you know what you are doing**
+    * nodetool compactionstats - provies stats about compaction. See what is currently compacting
+  * Network
+    * nodetool proxyhistograms - provides a histogram of network stats.  Includes percentile rank of read/write latency values
+    * nodetool netstats - provides network information about a host
   
-
 
 
