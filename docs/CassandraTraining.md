@@ -380,7 +380,8 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
  
 ### Using the nodetool utility
 
-
+* Command line interface for interacting with your Cassandra node
+* 
   
 
 
