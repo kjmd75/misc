@@ -580,3 +580,44 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 ```
 
 ### Useful Linux Observation Tools
+
+* dstat -lrvn 10 
+  * Shows all system resources instantly
+  * -l - load average
+  * -r - disk IOPS
+  * -v - vmstats
+  * -n - network throughput
+  * Memory should be around 95% in use (most in cache column)
+  * CPU should be < 1-2% of iowait and 2-15% system time
+* htop
+  * gives much more detail into threads per core than top
+* iostat
+  * await shows how much time it took to perform a seek (something above 20ms is bad)
+
+### Choosing the appropriate hardware
+
+* AVOID
+  * SAN storage
+  * NAS devices
+  * NFS
+* Memory
+  * Production: 16GB to 64GB; minimum is 8GB  (128GB is becoming the norm)
+  * Development in non-loading test environments: no less than 4GB
+  * More memory = better read performance
+  * More RAM = memtables hold more recently written data
+* CPU
+  * Cassandra is highly concurrent and uses as many CPU cores as available
+  * Production
+    * For dedicated hardware, 16-core CPU
+    * For virtual machines, 4 to 8-core CPU
+  * Development in non-loading test environments
+    * For dedicated and virtual environments, 2-core CPU
+* Disk
+  * SSD is absolutely the preferred solution.  Provides extremely low-latency response times for random reads while supplying ample sequential write performance for compaction operations
+  * HDDs - cheapest storage available.  If you choose HDDs, make sure you make up with a lot of Memory
+* Network
+  * You should bind your interfaces to separate Network Interface Cards (NIC)
+  * Recommended bandwidth is a gigabit or greater connection
+
+### Types of Storage to Avoid
+
