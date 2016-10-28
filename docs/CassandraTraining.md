@@ -621,3 +621,39 @@ Bloom Filter -> Key Cache -> Summary Index -> Partition Index -> sstable
 
 ### Types of Storage to Avoid
 
+* SAN
+  * Just say no
+  * Not recommended for on premises deployments
+  * Difficult and pricey architecture to use with distributed databases
+* Cassandra specific performance issues
+  * Bad read performance
+  * Potential write performance issues
+  * System instability
+  * Flushwriters are blocked
+  * Compactions are backed up
+  * Repair/Streaming won't complete
+* NAS 
+  * Storing SSTables on network attached storage (NAS) device is not recommended
+  * Worse than SAN
+* NFS
+  * No...worst of all
+
+### Cloud Provisioning
+
+* There are several one click deployment patterns for Cassandra and DSE development and test environments.
+* For production, it is recommended to use OpsCenter
+* If you don't have access to OpsCenter, you can use Chef, Ansible to install DSE
+* Disk 
+  * Ephemeral/Bare metal is fastest
+* CPU
+  * Hyperthread - don't use.  You want real CPUs
+  * If you see CPU steal, terminate the box and get a new one.  It means you have a noisy neighbor
+
+### Hadoop Style Nodes
+
+* Don't do it
+* Hadoop Style Nodes = Fat Nodes
+* An expensive way to make your Cassandra clusters inefficient
+* Hadoop style nodes are bias heavily towards large and slow storage and low memory
+* Optimized for slow analytic workloads and not fast transactions
+
