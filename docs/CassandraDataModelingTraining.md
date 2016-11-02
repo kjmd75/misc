@@ -133,3 +133,50 @@ update employee set emp_name = 'Jane Doe' where emp_id = 6;
 
 * So why is this?  Because a traditional RDBMS has to read the exisitng data/index to verify if it exists or not, it is inheriently slower.  Cassandra doesn't do a read lookup beforehand, so it just writes the data out no matter if the same primary key row exists or not.  **Note this behavior can be altered if required.**  But upserts will occur by default.
 
+### Collection Columns
+
+* Collection columns are multi-valued columns
+* Designed to store a small amount of data
+* Retrieved in its entirety
+* Cannot nest a collection inside another collection
+* Examples:
+  * SET<text>
+    * Stores a collection of unique values
+    * Ordered by those values
+  * LIST<text>
+    * Stores a collection of non-unique values (can have duplicate values)
+    * Order by position
+  * MAP<text, int>
+    * Typed collection of key-value pairs
+    * Ordered by unique keys
+    
+### User-defined Types (UDT)
+
+* User-defined Types group related fields of information
+* Allows embedding more complex data within a single column
+
+``` sql
+CREATE TYPE address (
+  street text,
+  city text,
+  zip_code int,
+  phones set<text>
+);
+
+CREATE TYPE full_name (
+  first_name text,
+  last_name text
+);
+```
+
+* Using UDTs is easy.  You need to add a "frozen" keyword.
+
+``` sql
+CREATE TABLE users (
+  id uuid,
+  name frozen <full_name>,
+  direct_reports set<froze <full_name>>,
+  addresses map<text, frozen <address>>,
+  PRIMARY KEY ((id))
+);
+```
