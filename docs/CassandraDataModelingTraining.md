@@ -140,13 +140,13 @@ update employee set emp_name = 'Jane Doe' where emp_id = 6;
 * Retrieved in its entirety
 * Cannot nest a collection inside another collection
 * Examples:
-  * SET<text>
+  * SET\<text>
     * Stores a collection of unique values
     * Ordered by those values
-  * LIST<text>
+  * LIST\<text>
     * Stores a collection of non-unique values (can have duplicate values)
     * Order by position
-  * MAP<text, int>
+  * MAP\<text, int>
     * Typed collection of key-value pairs
     * Ordered by unique keys
     
@@ -175,7 +175,7 @@ CREATE TYPE full_name (
 CREATE TABLE users (
   id uuid,
   name frozen <full_name>,
-  direct_reports set<froze <full_name>>,
+  direct_reports set<frozen <full_name>>,
   addresses map<text, frozen <address>>,
   PRIMARY KEY ((id))
 );
