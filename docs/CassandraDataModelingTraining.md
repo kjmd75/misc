@@ -180,3 +180,31 @@ CREATE TABLE users (
   PRIMARY KEY ((id))
 );
 ```
+
+### Counter data type
+
+* Allows you increment a counter.  
+* Only counters can exist in the table besides the partition key columns.  No other non-counter non-partition key columns can exist.
+* Can only update counter fields.
+
+``` sql
+CREATE TABLE moo_counts (
+  cow_name text,
+  moo_count counter,
+  PRIMARY KEY ((cow_name))
+);
+
+UPDATE moo_counts
+SET moo_count = moo_count + 8
+WHERE cow_name = 'Betsy';
+```
+
+### Sourcing Files
+
+* Executes a fill containing CQL statements
+* Enclose file name in single quotes
+
+``` sql
+SOURCE './myscript.cql';
+```
+
