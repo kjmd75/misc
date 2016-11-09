@@ -208,3 +208,21 @@ WHERE cow_name = 'Betsy';
 SOURCE './myscript.cql';
 ```
 
+### Static Columns
+
+* Static columns are columns that are only stored once per partition key.  
+* For the example below, the email, first name, and last name is only stored once for every user_id, even if there are multiple videos associated to that user id. 
+
+``` sql
+CREATE TABLE videos_by_user (
+  user_id int,
+  video_id uuid,
+  email text STATIC,
+  first_name text STATIC,
+  last_name text STATIC,
+  title text,
+  uploaded_timestamp timestamp,
+  PRIMARY KEY ((user_id), uploaded_timestamp, video_id)
+)
+WITH CLUSTERING ORDER BY (uploaded_timestamp DESC, video_id ASC);
+```
