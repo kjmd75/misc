@@ -226,3 +226,36 @@ CREATE TABLE videos_by_user (
 )
 WITH CLUSTERING ORDER BY (uploaded_timestamp DESC, video_id ASC);
 ```
+
+### Batches
+
+* You can use batches to sync duplicate data across tables
+* Batches will run all commands in the batch at the same time
+
+``` sql
+BEGIN BATCH
+   INSERT INTO videos (video_id, ...) VALUES (1, ...);
+   INSERT INTO videos_by_title (title, video_id, ...) VALUES ('Jaw', 1, ...);
+APPLY BATCH;
+
+BEGIN BATCH
+   UPDATE videos SET title = 'Jaws' WHERE video_id = 1;
+   INSERT INTO videos_by_title (title, video_id, ...) VALUES ('Jaws', 1, ...);
+   DELETE from videos_by_title WHERE title = 'Jaw' and video_id = 1;
+APPLY BATCH;
+```
+
+### Lightweight Transactions
+
+* Will slow performance
+* Allows you to do a read before a write
+
+``` sql 
+INSERT INTO users (user_id, ...) VALUES ('jdoe', ...)
+IF NOT EXISTS;
+
+UPDATE users
+SET reset_token_id = null, password = 'trustno1'
+WHERE user_id = 'jdoe'
+IF reset_token_id = 'ABCDE-12345';
+```
