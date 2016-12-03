@@ -101,6 +101,7 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 1. vi /opt/mattermost/config/config.json
   1. Verify "DriverName" is set to "mysql"
   1. Update "DataSource" to use the correct mmuser password and hit localhost instead of dockerhost
+  1. Update "Directory" under "FileSettings" to "/data01/mattermost/data"
 
 ### Mattermost service setup
 1. touch /etc/systemd/system/mattermost.service
@@ -179,3 +180,4 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 1. ./letsencrypt-auto certonly --standalone
 ... DOESNT WORK ...
 service nginx start
+
