@@ -132,5 +132,50 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 
 ## NGINX setup
 
+### NGINX install
+1. vi /etc/yum.repos.d/nginx.repo
 
+    ``` text
+    [nginx]
+    name=nginx repo
+    baseurl=http://nginx.org/packages/rhel/7/$basearch/
+    gpgcheck=0
+    enabled=1
+    ```
+1. yum install nginx.x86_64
+1. service nginx start
+1. chkconfig nginx on
 
+### Setup for Mattermost
+1. touch /etc/nginx/conf.d/mattermost.conf
+1. vi /etc/nginx/conf.d/mattermost.conf
+
+    ``` text
+    server {
+       server_name host;
+
+       location / {
+          client_max_body_size 50M;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_set_header Host $http_host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Frame-Options SAMEORIGIN;
+          proxy_pass http://ipaddr:8065;
+       }
+    }
+    ```
+1. mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak
+1. service nginx restart
+
+### Setup for SSL
+1. yum install git
+1. cd /root
+1. git clone https://github.com/letsencrypt/letsencrypt
+1. cd letsencrypt
+1. service nginx stop
+1. ./letsencrypt-auto certonly --standalone
+... DOESNT WORK ...
+service nginx start
