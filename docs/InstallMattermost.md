@@ -106,22 +106,23 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 1. touch /etc/systemd/system/mattermost.service
 1. vi /etc/systemd/system/mattermost.service
 
-``` bash
-[Unit]
-Description=Mattermost
-After=syslog.target network.target mysqld
+    ``` bash
+    [Unit]
+    Description=Mattermost
+    After=syslog.target network.target mysqld
 
-[Service]
-Type=simple
-WorkingDirectory=/opt/mattermost/bin
-User=mattermost
-ExecStart=/opt/mattermost/bin/platform
-PIDFile=/var/spool/mattermost/pid/master.pid
-LimitNOFILE=49152
+    [Service]
+    Type=simple
+    WorkingDirectory=/opt/mattermost/bin
+    User=mattermost
+    ExecStart=/opt/mattermost/bin/platform
+    PIDFile=/var/spool/mattermost/pid/master.pid
+    LimitNOFILE=49152
 
-[Install]
-WantedBy=multi-user.target
-```
+    [Install]
+    WantedBy=multi-user.target
+    ```
+    
 1. chmod 664 /etc/systemd/system/mattermost.service
 1. systemctl daemon-reload
 1. chkconfig mattermost on
