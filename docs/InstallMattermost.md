@@ -31,7 +31,7 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 1. Login to the database and run several commands:
   1. mysql -u root -p 
   1. CREATE DATABASE mattermost;
-  1. CREATE USER mmuser IDENTIFIED BY "MmUSER789!";
+  1. CREATE USER mmuser IDENTIFIED BY "password_here";
   1. GRANT ALL PRIVILEGES ON mattermost.* TO mmuser;
 
 ### Move data dir to /data01
@@ -85,8 +85,17 @@ Based on: https://docs.mattermost.com/install/prod-rhel-7.html
 
 
 ## MatterMost install
+1. cd /root
 1. wget https://releases.mattermost.com/3.5.1/mattermost-3.5.1-linux-amd64.tar.gz
- 
-
+1. tar -xvzf mattermost-3.5.1-linux-amd64.tar.gz 
+1. mv mattermost /opt
+1. mkdir -p /data01/mattermost/data
+1. useradd -r mattermost -U
+1. chown -R mattermost:mattermost /data01/mattermost
+1. chmod -R g+w /data01/mattermost
+1. usermod -aG mattermost root
+1. vi /opt/mattermost/config/config.json
+  1. Verify "DriverName" is set to "mysql"
+  1. Update "DataSource" to use the correct mmuser password and hit localhost instead of dockerhost
 
 
